@@ -86,10 +86,7 @@ class RequestsHttpClient(HttpClient):
     logging.info("%sSending HTTP '%s' request to '%s'.", self.log_id,
                  http_request.method, http_request.url)
     req = self._prepare_request(http_request)
-    loop = asyncio.get_event_loop()
-    future = asyncio.ensure_future(self._prepare_future(req, network_service))
-    loop.run_until_complete(future)
-    res = future.result()
+    res = asyncio.run(self._prepare_future(req, network_service))
     return self._parse_response(res)
 
   @classmethod
@@ -121,7 +118,7 @@ class RequestsHttpClient(HttpClient):
       network_service: Optional[NetworkService],
   ):
     """Prepare async request to include configuration."""
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     future = loop.run_in_executor(
         concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers),
         functools.partial(
